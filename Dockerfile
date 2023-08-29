@@ -5,9 +5,8 @@ LABEL Organization="qsnctf" Author="M0x1n <lqn@sierting.com>"
 
 COPY files /tmp/
 
-RUN sed -i 's/deb.debian.org/mirrors.nju.edu.cn/g' /etc/apt/sources.list \
-    && sed -i 's/security.debian.org/mirrors.nju.edu.cn/g' /etc/apt/sources.list \
-    && apt-get update -y && apt-get install -y net-tools wget mysql-client mariadb-server \
+RUN mv /tmp/sources.list /etc/apt/sources.list \
+    && apt-get update -y && apt-get install -y net-tools wget mariadb-server \
     && docker-php-source extract \
     && docker-php-ext-install mysql mysqli pdo_mysql \
     && docker-php-source delete \
@@ -16,7 +15,8 @@ RUN sed -i 's/deb.debian.org/mirrors.nju.edu.cn/g' /etc/apt/sources.list \
     && sleep 5s \
     && mysqladmin -uroot password 'root' \
     # Fix: Update all root password
-    && mysql -uroot -proot -e "UPDATE mysql.user SET Password=PASSWORD('root') WHERE user='root';" \
+    && mysql -uroot -proot -e "CREATE USER 'root'@'127.0.0.1' IDENTIFIED BY 'password'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' WITH GRANT OPTION; FLUSH PRIVILEGES;" \
+    && mysql -uroot -proot -e "SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('root');" \
     && mysql -uroot -proot -e "create user ping@'%' identified by 'ping';" \
     && cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
     && sed -i -e 's/display_errors.*/display_errors = Off/' /usr/local/etc/php/php.ini \

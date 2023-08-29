@@ -5,7 +5,7 @@ mysql_ready() {
 }
 
 run_mysql() {
-    /usr/bin/mysqld --user=root --skip-name-resolve --skip-networking=0 &
+    /usr/bin/mysqld_safe --user=root --skip-name-resolve --skip-networking=0 &
 }
 
 keep_alive(){
@@ -29,7 +29,16 @@ do
     sleep 3s
 done
 
+if [ -f /var/www/html/db.sql ]; then
+      echo "[+] Init db.sql"
+      mysql -uroot -proot -e "source /var/www/html/db.sql"
+      rm -f /var/www/html/db.sql
+fi
+
+
 if [ -f /flag.sh ]; then
+
+
     echo "[+] Init flag.sh"
     source /flag.sh
 fi
